@@ -1,6 +1,9 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col, window,lit
 from pyspark.sql.types import StructType, StringType, TimestampType
+import time
+from datetime import datetime
+
 
 base_path = "/home/pes2ug22cs064/DBT_Project/jars"
 jars = ",".join([
@@ -76,8 +79,6 @@ messages_df = messages_raw.selectExpr("CAST(value AS STRING)") \
     .withColumn("timestamp", col("timestamp").cast(TimestampType()))
 
 # ===== Transformations =====
-
-# 1. Commits per team (last 30 seconds, update every 10 seconds)
 commits_count = commits_df \
     .groupBy(
         window(col("timestamp"), "30 seconds", "10 seconds"),
@@ -101,37 +102,52 @@ sentiment_count = messages_df \
     ).count() \
     .withColumn("event_type", lit("message_sentiment"))
 
-# ===== Output =====
+def log_commit_batch(df, epoch_id):
+    start = time.time()
+    print(f"\n[Epoch {epoch_id}] ⏳ Processing commit batch...")
+    df.show(truncate=False, n=50)
+    end = time.time()
+    print(f"✅ Commit batch {epoch_id} processed in {round(end - start, 3)} seconds")
 
-# Commits
-# Commits
 commits_query = commits_count \
     .writeStream \
     .outputMode("complete") \
-    .format("console") \
-    .option("truncate", False) \
-    .option("numRows", 50) \
+    .foreachBatch(log_commit_batch) \
     .start()
 
 # Submissions
+def log_submission_batch(df, epoch_id):
+    start = time.time()
+    print(f"\n[Epoch {epoch_id}] ⏳ Processing submission batch...")
+    df.show(truncate=False, n=50)
+    end = time.time()
+    print(f"✅ Submission batch {epoch_id} processed in {round(end - start, 3)} seconds")
+
 submissions_query = submissions_count \
     .writeStream \
     .outputMode("complete") \
-    .format("console") \
-    .option("truncate", False) \
-    .option("numRows", 50) \
+    .foreachBatch(log_submission_batch) \
     .start()
 
 # Sentiments
+def log_sentiment_batch(df, epoch_id):
+    start = time.time()
+    print(f"\n[Epoch {epoch_id}] ⏳ Processing sentiment batch...")
+    df.show(truncate=False, n=50)
+    end = time.time()
+    print(f"✅ Sentiment batch {epoch_id} processed in {round(end - start, 3)} seconds")
+
 sentiment_query = sentiment_count \
     .writeStream \
     .outputMode("complete") \
-    .format("console") \
-    .option("truncate", False) \
-    .option("numRows", 50) \
+    .foreachBatch(log_sentiment_batch) \
     .start()
 
 
 # Await all
 spark.streams.awaitAnyTermination()
+
+
+
+
 
