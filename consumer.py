@@ -13,7 +13,7 @@ conn = psycopg2.connect(
 )
 
 cur = conn.cursor()
-
+cur.execute("TRUNCATE TABLE commits, messages, submissions RESTART IDENTITY;")
 # Kafka consumer
 consumer = KafkaConsumer(
     'commits', 'submissions', 'messages',
