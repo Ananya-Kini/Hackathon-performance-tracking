@@ -1,10 +1,11 @@
 from pyspark.sql import SparkSession
+import time
 
 # JDBC config
 jdbc_url = "jdbc:postgresql://localhost:5432/dbt"
 properties = {
     "user": "postgres",
-    "password": "password", 
+    "password": "password",
     "driver": "org.postgresql.Driver"
 }
 
@@ -21,46 +22,49 @@ df_commits = spark.read.jdbc(jdbc_url, "commits", properties=properties)
 df_messages = spark.read.jdbc(jdbc_url, "messages", properties=properties)
 df_submissions = spark.read.jdbc(jdbc_url, "submissions", properties=properties)
 
-# Register as temp views for SQL queries
+# Register as temp views
 df_commits.createOrReplaceTempView("commits")
 df_messages.createOrReplaceTempView("messages")
 df_submissions.createOrReplaceTempView("submissions")
 
-# ===================== QUERIES ===================== #
+# ===================== QUERIES WITH TIMING ===================== #
+
+def timed_query(label, query):
+    print(f"\n⏳ Running {label}...")
+    start = time.time()
+    spark.sql(query).show(truncate=False)
+    end = time.time()
+    print(f"{label} completed in {round(end - start, 3)} seconds")
 
 # 1. Commit count per team
-print("✅ Commit Count Per Team")
-spark.sql("""
+timed_query("Commit Count Per Team", """
     SELECT team_id, COUNT(*) AS total_commits
     FROM commits
     GROUP BY team_id
     ORDER BY total_commits DESC
-""").show(truncate=False)
+""")
 
-# 2. Top contributors (users with most commits)
-print("✅ Top Contributors")
-spark.sql("""
+# 2. Top contributors
+timed_query("Top Contributors", """
     SELECT user_id, COUNT(*) AS commit_count
     FROM commits
     GROUP BY user_id
     ORDER BY commit_count DESC
-""").show(truncate=False)
+""")
 
 # 3. Submission frequency per team
-print("✅ Submission Count Per Team")
-spark.sql("""
+timed_query("Submission Count Per Team", """
     SELECT team_id, COUNT(*) AS submission_count
     FROM submissions
     GROUP BY team_id
     ORDER BY submission_count DESC
-""").show(truncate=False)
+""")
 
-# 4. Sentiment breakdown from messages
-print("✅ Sentiment Distribution Per Team")
-spark.sql("""
+# 4. Sentiment breakdown
+timed_query("Sentiment Distribution Per Team", """
     SELECT team_id, sentiment, COUNT(*) AS count
     FROM messages
     GROUP BY team_id, sentiment
     ORDER BY team_id
-""").show(truncate=False)
+""")
 
