@@ -4,7 +4,6 @@ import psycopg2
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-# DB connection
 @st.cache_data
 def load_data():
     conn = psycopg2.connect(
@@ -23,7 +22,6 @@ def load_data():
 
 df_commits, df_messages, df_submissions = load_data()
 
-# Dashboard layout
 st.title("📊 Hackathon Analytics Dashboard")
 
 st.sidebar.title("Select View")

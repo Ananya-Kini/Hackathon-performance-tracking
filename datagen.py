@@ -8,10 +8,8 @@ producer = KafkaProducer(
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
 )
 
-# 10 teams
 teams = [f'Team{i}' for i in range(1, 11)]
 
-# 3 users per team, named User1_Team1, User2_Team1, etc.
 team_users = {
     team: [f'User{j}_{team}' for j in range(1, 4)]
     for team in teams

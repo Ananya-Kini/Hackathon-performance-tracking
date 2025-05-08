@@ -3,7 +3,6 @@ import json
 from datetime import datetime
 import psycopg2
 
-# PostgreSQL connection config
 conn = psycopg2.connect(
     dbname="dbt",
     user="postgres",
@@ -14,7 +13,6 @@ conn = psycopg2.connect(
 
 cur = conn.cursor()
 cur.execute("TRUNCATE TABLE commits, messages, submissions RESTART IDENTITY;")
-# Kafka consumer
 consumer = KafkaConsumer(
     'commits', 'submissions', 'messages',
     bootstrap_servers='localhost:9092',
@@ -71,7 +69,6 @@ for message in consumer:
         print(f"Error inserting into {topic}: {e}")
         conn.rollback()
 
-# Clean up (optional if you interrupt)
 cur.close()
 conn.close()
 

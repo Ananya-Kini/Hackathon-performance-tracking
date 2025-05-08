@@ -1,0 +1,24 @@
+CREATE DATABASE dbt;
+\c dbt
+
+CREATE TABLE commits (
+    team_id TEXT,
+    user_id TEXT,
+    commit_msg TEXT,
+    timestamp TIMESTAMP
+);
+
+CREATE TABLE messages (
+    team_id TEXT,
+    user_id TEXT,
+    message_text TEXT,
+    sentiment TEXT,
+    timestamp TIMESTAMP
+);
+
+CREATE TABLE submissions (
+    team_id TEXT,
+    challenge_id TEXT,
+    status TEXT,
+    timestamp TIMESTAMP
+);

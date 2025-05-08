@@ -12,7 +12,6 @@ jars = ",".join([
     f"{base_path}/kafka-clients-3.6.1.jar",
     f"{base_path}/commons-pool2-2.11.1.jar"
 ])
-# Initialize Spark Session
 spark = SparkSession.builder \
     .appName("HackathonStreamingProcessor") \
     .master("local[*]") \
@@ -20,7 +19,6 @@ spark = SparkSession.builder \
     .getOrCreate()
 spark.sparkContext.setLogLevel("WARN")
 
-# ===== Schemas for each event type =====
 commit_schema = StructType() \
     .add("team_id", StringType()) \
     .add("user_id", StringType()) \
@@ -40,9 +38,6 @@ message_schema = StructType() \
     .add("sentiment", StringType()) \
     .add("timestamp", StringType())
 
-# ===== Kafka stream readers =====
-
-# Commits
 commits_raw = spark.readStream \
     .format("kafka") \
     .option("subscribe", "commits") \
@@ -54,7 +49,6 @@ commits_df = commits_raw.selectExpr("CAST(value AS STRING)") \
     .select("data.*") \
     .withColumn("timestamp", col("timestamp").cast(TimestampType()))
 
-# Submissions
 submissions_raw = spark.readStream \
     .format("kafka") \
     .option("subscribe", "submissions") \
@@ -66,7 +60,6 @@ submissions_df = submissions_raw.selectExpr("CAST(value AS STRING)") \
     .select("data.*") \
     .withColumn("timestamp", col("timestamp").cast(TimestampType()))
 
-# Messages
 messages_raw = spark.readStream \
     .format("kafka") \
     .option("subscribe", "messages") \
@@ -78,7 +71,6 @@ messages_df = messages_raw.selectExpr("CAST(value AS STRING)") \
     .select("data.*") \
     .withColumn("timestamp", col("timestamp").cast(TimestampType()))
 
-# ===== Transformations =====
 commits_count = commits_df \
     .groupBy(
         window(col("timestamp"), "30 seconds", "10 seconds"),
@@ -104,10 +96,10 @@ sentiment_count = messages_df \
 
 def log_commit_batch(df, epoch_id):
     start = time.time()
-    print(f"\n[Epoch {epoch_id}] ⏳ Processing commit batch...")
+    print(f"\n[Epoch {epoch_id}] Processing commit batch...")
     df.show(truncate=False, n=50)
     end = time.time()
-    print(f"✅ Commit batch {epoch_id} processed in {round(end - start, 3)} seconds")
+    print(f"Commit batch {epoch_id} processed in {round(end - start, 3)} seconds")
 
 commits_query = commits_count \
     .writeStream \
@@ -115,13 +107,12 @@ commits_query = commits_count \
     .foreachBatch(log_commit_batch) \
     .start()
 
-# Submissions
 def log_submission_batch(df, epoch_id):
     start = time.time()
-    print(f"\n[Epoch {epoch_id}] ⏳ Processing submission batch...")
+    print(f"\n[Epoch {epoch_id}] Processing submission batch...")
     df.show(truncate=False, n=50)
     end = time.time()
-    print(f"✅ Submission batch {epoch_id} processed in {round(end - start, 3)} seconds")
+    print(f"Submission batch {epoch_id} processed in {round(end - start, 3)} seconds")
 
 submissions_query = submissions_count \
     .writeStream \
@@ -129,13 +120,12 @@ submissions_query = submissions_count \
     .foreachBatch(log_submission_batch) \
     .start()
 
-# Sentiments
 def log_sentiment_batch(df, epoch_id):
     start = time.time()
-    print(f"\n[Epoch {epoch_id}] ⏳ Processing sentiment batch...")
+    print(f"\n[Epoch {epoch_id}] Processing sentiment batch...")
     df.show(truncate=False, n=50)
     end = time.time()
-    print(f"✅ Sentiment batch {epoch_id} processed in {round(end - start, 3)} seconds")
+    print(f"Sentiment batch {epoch_id} processed in {round(end - start, 3)} seconds")
 
 sentiment_query = sentiment_count \
     .writeStream \
@@ -144,7 +134,6 @@ sentiment_query = sentiment_count \
     .start()
 
 
-# Await all
 spark.streams.awaitAnyTermination()
 
 
