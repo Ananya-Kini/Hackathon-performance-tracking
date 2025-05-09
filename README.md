@@ -2,7 +2,7 @@
 This project analyzes the differences between **streaming** and **batch processing** techniques using **Apache Kafka** and **Apache Spark**. The system simulates a real-time hackathon environment by generating synthetic data (e.g., commits, messages, and submissions), then processes it using both real-time and batch pipelines to evaluate metrics and participation of the teams.
 
 ## System Architecture
-![[dbt.drawio (2).png]]
+![alt text](<dbt.drawio (2).png>)
 - **Synthetic Data Generator**: Simulates live hackathon activity and sends data to Kafka topics.
 - **Kafka**: Acts as a distributed message broker for decoupling data generation from processing.
 - **Spark Streaming**: Consumes Kafka data in real-time for immediate analysis.
