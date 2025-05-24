@@ -15,4 +15,6 @@ This project analyzes the differences between **streaming** and **batch processi
 3. Start generating data using ```python3 datagen.py```
 4. Microbatches for calculation of submission count, commit count and message sentiment per team keep running. The consumer just keeps adding the records to a PostgreSQL database(mentioned in dbdef.txt)
 5. Run ```python3 sparkbatch.py``` whenever enough data is accumulated, it returns submission count, commit count and message sentiment per team and top contributors. 
-6. Finally, run ```streamlit run app.py``` to see plots/visualization of the calculated stats. 
+6. Finally, run ```streamlit run app.py``` to see plots/visualization of the calculated stats.
+
+![alt text](<top contributors.png>)
